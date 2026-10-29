@@ -2,40 +2,41 @@
 
 Upstream: https://github.com/Z1xus/amplio
 TFL Client: https://github.com/TFLivesStudio/TFLClientMOD
+Companion: https://github.com/jonathanthxd/lucerna/pull/1
 
-## Baseline
-TFL uses Minecraft 1.8.9, Ornithe Gen2, Java 25, OSL 0.22.2, Legacy LWJGL3 1.4.10, Argentum 1.0.2 and TFL Core. Lucerna is being evaluated separately.
+## Tested compile-time baseline
+Minecraft 1.8.9, Feather Gen2 mappings build 2, Java 25, Fabric Loader 0.19.5 at build time, and Argentum 1.0.2.
+TFL runtime baseline: Ornithe Gen2, Fabric Loader 0.20.1, OSL 0.22.2, Legacy LWJGL3 1.4.10, Argentum 1.0.2, TFL Core 0.4.0-depth.1.
 
-## Important: Pylon is a declared REQUIRED dependency
-Amplio's `fabric.mod.json` requires `pylon: "*"`. Our TFL client uses Legacy LWJGL3.
-Both provide overlapping legacy-LWJGL compatibility and SDL-window/input functionality.
-DO NOT install Pylon together with Legacy LWJGL3 until compatibility is demonstrated.
-DO NOT simply remove the metadata requirement and declare the client compatible.
-Proposed experiment: keep TFL on Legacy LWJGL3 and inspect/port any required Pylon hooks, then run actual native tests. This is a future code-change decision.
+## Pylon removal: source-level adaptation, not proof of a working renderer
+Upstream Amplio requires Pylon at runtime. TFL uses Legacy LWJGL3. The fork makes Pylon optional (metadata "suggests") and removes the unused Pylon compile-only dependency. A review of all 18 Java source files found no direct pl.tomgirl.pylon Java API calls.
 
-## Source/CI strategy
-- The upstream `.github/workflows/build.yml` already builds Linux/Windows native binaries and packages a JAR. Keep it unchanged initially.
-- `tfl-ornithe-ci.yml` adds an independent source contract gate and `compileJava`; it intentionally DOES NOT package an incomplete Java-only JAR.
-- The native SDK DLSS dependencies have separate licensing terms from Amplio's MIT source.
-- Successful native builds do not prove running NVIDIA NGX or OpenGL/Vulkan interoperability on a real GPU.
+This allows Fabric Loader to resolve the TFL mod stack WITHOUT installing Pylon. It does not validate OpenGL context/extension compatibility, custom framebuffers, or any shaderpack interactions. Do not add Pylon alongside Legacy LWJGL3 in a test profile.
 
-## Render pipeline risks
-- `MixinScaleWorld` temporarily replaces the Minecraft main render target during world rendering.
-- `MixinScaleViewport` changes full-window viewports in the world pass.
-- `MixinCameraJitter` intercepts camera, hand and cloud projection setup for temporal DLSS.
-- TFL `OrnitheColors` uses a post chain; Lucerna also owns shaders, render targets and postprocessing. Render order and correct restore must be established.
-- DLSS requires physical NVIDIA hardware, working OpenGL/Vulkan external memory and semaphore extensions, and matching GPU UUIDs.
-- FSR1 is spatial; prioritize its native demonstration before DLSS.
+## Startup defaults
+New amplio.properties will have upscaler=OFF (native world resolution), with QUALITY selected as the default preset if the user opts into FSR1/DLSS. Existing configuration files are not overwritten by these Java defaults. For baseline testing, explicitly check the existing properties file or reset it after backing it up.
 
-## Runtime acceptance (must be performed, not inferred from CI)
-- [ ] First certify `Argentum + Legacy LWJGL3 + Amplio` without Lucerna or TFL Core (after dependency resolution)
-- [ ] FSR1 OFF/QUALITY/BALANCED/PERFORMANCE, resize, fullscreen, world change, resource reload
-- [ ] Add Lucerna and a simple shaderpack, confirm color/depth buffers and UI not upscaled
-- [ ] Add TFL Core; test HUD, title video, zoom/freelook, panorama, maps, Paper Doll and color grading
-- [ ] NVIDIA GPU only: DLSS Quality, native anti-aliasing, teleport/camera cut/history reset
-- [ ] Check mobile hybrid-GPU routing: Vulkan and OpenGL must run on the same physical GPU
-- [ ] Profile frame-time p50/p95/p99 and render cost with shaders ON and OFF
-- [ ] Report OS, driver, GPU, Java, hashes, video and crash logs
+FSR1 is spatial upscaling and likely offers little benefit in CPU-bound, shaderless 1.8.9 PvP. On the AMD A10 system, only FSR1 should be tested. NVIDIA DLSS requires an RTX GPU and a compatible OpenGL/Vulkan interop path.
 
-## Shipping policy
-No stable binary, automatic merge, bundling of unlicensed third-party natives, or performance claim before native/physical-GPU certification. Keep this integration branch isolated.
+## CI strategy
+- tfl-ornithe-ci.yml validates the source metadata, checks no Pylon imports, asserts OFF defaults and compiles Java with JDK 25.
+- build.yml builds native libraries on Linux/Windows, packages a full JAR and checks packaged metadata plus platform-specific native indexes.
+- GitHub Actions is not a replacement for a physical graphics device with valid drivers; successful CI is not runtime certification.
+- NVIDIA DLSS SDK distribution and third-party license terms must be checked before any public redistribution.
+
+## Rendering and integration risks
+- MixinScaleWorld swaps Minecraft's main framebuffer around GameRenderer.renderWorld. Lucerna intercepts world shaders/postprocessing.
+- MixinScaleViewport changes viewport dimensions during the world pass.
+- MixinCameraJitter modifies camera/hand/cloud projections for temporal DLSS. TFL zoom, freelook, panorama, FOV and teleports need history reset validation.
+- OrnitheColors uses a PostChain on Minecraft's render target. Disable native TFL grading while testing Lucerna + Amplio until the postprocess composition order is established.
+- Mixed desktop/iGPU laptop setups require Vulkan and OpenGL to operate on the same RTX device for DLSS.
+
+## Hardware acceptance matrix
+- [ ] Clean Argentum + Legacy LWJGL3 1.4.10 + Amplio without TFL Core and Lucerna; set OFF, world load, resize, fullscreen and exit
+- [ ] FSR1 QUALITY, BALANCED, PERFORMANCE; compare frames, graphics artifacts and GUI sharpness
+- [ ] Repeat with Lucerna shaderpack OFF, then simple shaderpack ON, including weather/sky/hand/particles and switching dimensions
+- [ ] Add TFL Core; test main menu, HUD, Paper Doll, zoom, freelook, overlays, minimap, world map, colors and transitions
+- [ ] NVIDIA RTX machine: verify DLSS QUALITY, temporal history/camera cuts, GL/Vulkan external memory and semaphores, matching UUID
+- [ ] Record OS, GPU, driver, mods and hashes, screenshots, crash log and benchmark p50/p95/p99 frametimes
+
+Do not ship as a stable release or merge automatically until these runtime tests pass. Keep the implementation on a dedicated experimental branch.
