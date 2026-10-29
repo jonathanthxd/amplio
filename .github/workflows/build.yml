@@ -78,6 +78,8 @@ jobs:
           path: natives
       - name: Build
         run: ./gradlew build -PnativesDir="$PWD/natives"
+      - name: Validate packaged native JAR for TFL
+        run: python3 tools/tfl_ci_contracts.py --jar
       - uses: actions/upload-artifact@v4
         with:
           name: amplio
