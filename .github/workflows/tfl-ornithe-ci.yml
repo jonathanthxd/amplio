@@ -44,6 +44,6 @@ jobs:
           echo '### TFL Amplio validation' >> "$GITHUB_STEP_SUMMARY"
           echo '- This workflow validates source contracts and Java compilation.' >> "$GITHUB_STEP_SUMMARY"
           echo '- The upstream build.yml separately builds Windows/Linux NVIDIA native libraries and a JAR.' >> "$GITHUB_STEP_SUMMARY"
-          echo '- Pylon is a required runtime dependency. DO NOT install alongside Legacy LWJGL3 without explicit compatibility tests.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Pylon is optional in this fork; Legacy LWJGL3 graphics runtime still requires hardware validation.' >> "$GITHUB_STEP_SUMMARY"
           echo '- NOT verified: NVIDIA DLSS hardware, Vulkan/OpenGL interop, Lucerna shader pipeline, TFL Core framebuffer and GUI.' >> "$GITHUB_STEP_SUMMARY"
           echo '- No installable or release artifact is published by this workflow.' >> "$GITHUB_STEP_SUMMARY"
