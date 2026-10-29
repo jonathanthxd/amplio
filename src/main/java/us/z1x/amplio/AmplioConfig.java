@@ -12,8 +12,8 @@ import java.util.Properties;
 public final class AmplioConfig {
     private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("amplio.properties");
 
-    public UpscalerType upscaler = UpscalerType.FSR1;
-    public Quality quality = Quality.PERFORMANCE;
+    public UpscalerType upscaler = UpscalerType.OFF;
+    public Quality quality = Quality.QUALITY;
     public DlssModel dlssModel = DlssModel.CNN;
     // rcas sharpness in stops, 0 is the sharpest
     public float sharpness = 0.25F;
