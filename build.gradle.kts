@@ -34,6 +34,9 @@ dependencies {
 
     modCompileOnly("dev.rdh:argentum:${property("argentum_version")}")
     compileOnly("org.embeddedt.celeritas:celeritas-common:${property("celeritas_version")}")
+    // Legacy LWJGL3 supplies these at runtime; no Pylon dependency or bundled LWJGL binaries.
+    compileOnly("org.lwjgl:lwjgl:3.4.3")
+    compileOnly("org.lwjgl:lwjgl-opengl:3.4.3")
     compileOnly("org.slf4j:slf4j-api:2.0.17")
 }
 
