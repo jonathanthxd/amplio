@@ -9,8 +9,11 @@
   "license": "MIT",
   "depends": {
     "minecraft": "1.8.9",
-    "pylon": "*",
     "argentum": ">=1.0.2"
+  },
+  "suggests": {
+    "legacy-lwjgl3": "*",
+    "pylon": "*"
   },
   "mixins": ["amplio.mixins.json"]
 }
