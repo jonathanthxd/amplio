@@ -34,7 +34,6 @@ dependencies {
 
     modCompileOnly("dev.rdh:argentum:${property("argentum_version")}")
     compileOnly("org.embeddedt.celeritas:celeritas-common:${property("celeritas_version")}")
-    modCompileOnly("pl.tomgirl:pylon:${property("pylon_version")}")
     compileOnly("org.slf4j:slf4j-api:2.0.17")
 }
 
